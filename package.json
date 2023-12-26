@@ -1,16 +1,19 @@
 {
-  "name": "auth_service",
-  "version": "1.0.0",
-  "description": "A user authentication service.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node src/server.js"
-  },
-  "author": "Harshit <jmd.harshitmishra@gmail.com>",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^20.10.5",
-    "typescript": "^5.3.3"
-  }
+    "name": "auth_service",
+    "version": "1.0.0",
+    "description": "A user authentication service.",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "node src/server.js",
+        "format:check": "prettier . --check",
+        "format:fix": "prettier . --write"
+    },
+    "author": "Harshit <jmd.harshitmishra@gmail.com>",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^20.10.5",
+        "prettier": "3.1.1",
+        "typescript": "^5.3.3"
+    }
 }
