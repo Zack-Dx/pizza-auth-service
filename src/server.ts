@@ -1,6 +1,6 @@
 import app from "./app";
-import { Config } from "./config";
 import logger from "./config/logger/logger";
+import { Config } from "./config";
 
 const { PORT } = Config;
 
@@ -12,9 +12,9 @@ const startServer = () => {
     } catch (error: unknown) {
         if (error instanceof Error) {
             logger.error(error.message);
-            setTimeout(() => {
+            logger.on("finish", () => {
                 process.exit(1);
-            }, 1000);
+            });
         }
     }
 };
