@@ -1,6 +1,6 @@
-import { calculateDiscount } from "./src/utils";
+import { calculateDiscount } from "./utils";
 import request from "supertest";
-import app from "./src/app";
+import app from "./app";
 
 describe("App", () => {
     it("should calculate the discount", () => {
