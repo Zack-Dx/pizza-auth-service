@@ -21,6 +21,14 @@ describe("POST /auth/register", () => {
             const statusCode = response.statusCode;
             expect(statusCode).toBe(201);
         });
+
+        it("should return Content-Type header as application/json", async () => {
+            const response = await request(app).post("/auth/register");
+            expect(response.headers["content-type"]).toMatch(
+                /^application\/json/,
+            );
+        });
     });
+
     describe("Missing Required Fields", () => {});
 });
