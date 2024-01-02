@@ -1,10 +1,13 @@
-import express, { Request, Response, NextFunction } from "express";
 import logger from "./config/logger/logger";
+import express, { Request, Response, NextFunction } from "express";
 import { HttpError } from "http-errors";
+import { authRouter } from "./routes/auth";
 
 const app = express();
 
-app.get("/", (req, res) => {
+app.use("/auth", authRouter);
+
+app.get("/health", (req, res) => {
     res.send("Hello");
 });
 
