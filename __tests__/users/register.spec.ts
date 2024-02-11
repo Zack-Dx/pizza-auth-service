@@ -28,7 +28,20 @@ describe("POST /auth/register", () => {
                 /^application\/json/,
             );
         });
-    });
 
-    describe("Missing Required Fields", () => {});
+        it("should persist user in the database", async () => {
+            // Arrange
+            const userData = {
+                firstName: "John",
+                lastName: "Doe",
+                email: "johndoe@gmail.com",
+                password: "something",
+            };
+
+            // Act
+            await request(app).post("/auth/register").send(userData);
+        });
+
+        // Assert
+    });
 });
