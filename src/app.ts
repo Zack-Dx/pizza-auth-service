@@ -6,6 +6,7 @@ import { authRouter } from "./routes/auth";
 
 const app = express();
 
+app.use(express.json({ limit: "16kb" }));
 app.use("/auth", authRouter);
 
 app.get("/health", (req, res) => {
