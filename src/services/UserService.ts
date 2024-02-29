@@ -8,7 +8,7 @@ export class UserService {
 
     async create({ firstName, lastName, email, password }: UserData) {
         try {
-            await this.userRepository.save({
+            return await this.userRepository.save({
                 firstName,
                 lastName,
                 email,

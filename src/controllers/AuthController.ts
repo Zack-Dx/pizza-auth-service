@@ -21,14 +21,14 @@ export class AuthController {
             password: "****",
         });
         try {
-            await this.userService.create({
+            const user = await this.userService.create({
                 firstName,
                 lastName,
                 email,
                 password,
             });
-            this.logger.info("User registered successfully.");
-            res.status(201).json({ message: "User registered successfully." });
+            this.logger.info("User registered successfully.", { id: user.id });
+            res.status(201).json({ id: user.id });
         } catch (error) {
             next(error);
             return;
