@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { RegisterUserRequest } from "../types";
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
+import bcrypt from "bcryptjs";
 
 export class AuthController {
     constructor(
@@ -14,6 +15,11 @@ export class AuthController {
         next: NextFunction,
     ) => {
         const { firstName, lastName, email, password } = req.body;
+
+        // Hashing the Password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
         this.logger.debug("New request to register a user", {
             firstName,
             lastName,
@@ -25,7 +31,7 @@ export class AuthController {
                 firstName,
                 lastName,
                 email,
-                password,
+                password: hashedPassword,
             });
             this.logger.info("User registered successfully.", { id: user.id });
             res.status(201).json({ id: user.id });
