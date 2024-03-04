@@ -143,5 +143,28 @@ describe("POST /auth/register", () => {
             expect(users[0].password).toHaveLength(60);
             expect(users[0].password).toMatch(/^\$2[a|b]\$\d+\$/);
         });
+
+        it("should return 400 statusCode if the email is not unique", async () => {
+            // Arrange
+            const userData = {
+                firstName: "John",
+                lastName: "Doe",
+                email: "johndoe@gmail.com",
+                password: "something",
+            };
+
+            const userRepository = connection.getRepository(User);
+            await userRepository.save({ ...userData, role: Roles.customer });
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            const users = await userRepository.find();
+
+            // Assert
+            expect(response.statusCode).toBe(400);
+            expect(users.length).toBe(1);
+        });
     });
 });
