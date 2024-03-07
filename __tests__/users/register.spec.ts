@@ -191,7 +191,7 @@ describe("POST /auth/register", () => {
         });
 
         describe("Fields are not in proper format", () => {
-            it("should print the email field", async () => {
+            it("should trim the email field", async () => {
                 // Arrange
                 const userData = {
                     firstName: "John",
