@@ -9,7 +9,7 @@ import { Config } from "../config";
 import { JwtPayload, sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 
-const { DOMAIN } = Config;
+const { DOMAIN, REFRESH_TOKEN_SECRET } = Config;
 
 export class AuthController {
     constructor(
@@ -73,7 +73,11 @@ export class AuthController {
                 issuer: "auth-service",
             });
 
-            const refreshToken = "";
+            const refreshToken = sign(payload, REFRESH_TOKEN_SECRET, {
+                algorithm: "HS256",
+                expiresIn: "1Y",
+                issuer: "auth-service",
+            });
 
             res.cookie("accessToken", accessToken, {
                 domain: DOMAIN,

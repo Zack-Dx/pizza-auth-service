@@ -13,14 +13,14 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     },
 });
 
-console.log(publicKey, privateKey);
+// console.log(publicKey, privateKey);
 
 fs.writeFileSync("certs/private.pem", privateKey, (err) => {
     if (err) throw err;
-    console.log("Private key saved to certs/private.pem");
+    // console.log("Private key saved to certs/private.pem");
 });
 
 fs.writeFileSync("certs/public.pem", publicKey, (err) => {
     if (err) throw err;
-    console.log("Public key saved to certs/public.pem");
+    // console.log("Public key saved to certs/public.pem");
 });
