@@ -4,6 +4,7 @@ import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
 import app from "../../src/app";
 import request from "supertest";
+import { isJWT } from "../utils";
 
 describe("POST /auth/register", () => {
     let connection: DataSource;
@@ -165,6 +166,44 @@ describe("POST /auth/register", () => {
             // Assert
             expect(response.statusCode).toBe(400);
             expect(users.length).toBe(1);
+        });
+
+        it("should return an access token and a refresh token inside a cookie", async () => {
+            // Arrange
+            const userData = {
+                firstName: "John",
+                lastName: "Doe",
+                email: "johndoe@gmail.com",
+                password: "something",
+            };
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            interface Headers {
+                [key: string]: string[];
+            }
+            // Assert
+            const cookies =
+                (response.headers as unknown as Headers)["set-cookie"] || [];
+
+            let accessToken: string | null = null;
+            let refreshToken: string | null = null;
+
+            cookies.forEach((cookie) => {
+                if (cookie.startsWith("accessToken=")) {
+                    accessToken = cookie.split(";")[0].split("=")[1];
+                }
+
+                if (cookie.startsWith("refreshToken=")) {
+                    refreshToken = cookie.split(";")[0].split("=")[1];
+                }
+            });
+            expect(accessToken).not.toBeNull();
+            expect(refreshToken).not.toBeNull();
+            expect(isJWT(accessToken)).toBeTruthy();
         });
     });
 
