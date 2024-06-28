@@ -4,6 +4,7 @@ import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
 import app from "../../src/app";
 import request from "supertest";
+import { RefreshToken } from "../../src/entity/RefreshToken";
 import { isJWT } from "../utils";
 
 describe("POST /auth/register", () => {
@@ -205,6 +206,35 @@ describe("POST /auth/register", () => {
             expect(refreshToken).not.toBeNull();
             expect(isJWT(accessToken)).toBeTruthy();
             expect(isJWT(refreshToken)).toBeTruthy();
+        });
+
+        it("should store the refresh token in the database", async () => {
+            // Arrange
+            const userData = {
+                firstName: "John",
+                lastName: "Doe",
+                email: "johndoe@gmail.com",
+                password: "something",
+            };
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            // Assert
+            const refreshTokenRepo = connection.getRepository(RefreshToken);
+            const refreshTokens = await refreshTokenRepo.find();
+            expect(refreshTokens).toHaveLength(1);
+
+            const tokens = await refreshTokenRepo
+                .createQueryBuilder("refreshToken")
+                .where("refreshToken.userId = :userId", {
+                    userId: (response.body as Record<string, string>).id,
+                })
+                .getMany();
+
+            expect(tokens).toHaveLength(1);
         });
     });
 
