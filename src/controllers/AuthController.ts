@@ -10,6 +10,7 @@ import { JwtPayload, sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { AppDataSource } from "../config/data-source";
 import { RefreshToken } from "../entity/RefreshToken";
+import { isLeapYear } from "../utils/helpers";
 
 const { DOMAIN, REFRESH_TOKEN_SECRET } = Config;
 
@@ -75,7 +76,12 @@ export class AuthController {
                 issuer: "auth-service",
             });
 
-            const MS_IN_YEAR = 1000 * 60 * 60 * 24 * 365; // Todo : for leap year
+            // Expiry based on leap year check
+            const MS_IN_DAY = 1000 * 60 * 60 * 24;
+            const MS_IN_YEAR = MS_IN_DAY * 365;
+            const MS_IN_LEAP_YEAR = MS_IN_DAY * 366;
+            const currentYear = new Date().getFullYear();
+            const MS = isLeapYear(currentYear) ? MS_IN_LEAP_YEAR : MS_IN_YEAR;
 
             // Persisting the refresh token
             const refreshTokenRepositorty =
@@ -83,7 +89,7 @@ export class AuthController {
 
             const newRefreshToken = await refreshTokenRepositorty.save({
                 user: user,
-                expiresAt: new Date(Date.now() + MS_IN_YEAR),
+                expiresAt: new Date(Date.now() + MS),
             });
 
             const refreshToken = sign(payload, REFRESH_TOKEN_SECRET, {
@@ -107,7 +113,7 @@ export class AuthController {
                 httpOnly: true,
             });
 
-            res.status(201).json({ id: user.id });
+            return res.status(201).json({ id: user.id });
         } catch (error) {
             next(error);
             return;
