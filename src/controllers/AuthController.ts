@@ -1,23 +1,22 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import { NextFunction, Response } from "express";
 import { RegisterUserRequest } from "../types";
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
 import { validationResult } from "express-validator";
 import { Config } from "../config";
-import { JwtPayload, sign } from "jsonwebtoken";
-import createHttpError from "http-errors";
+import { JwtPayload } from "jsonwebtoken";
 import { AppDataSource } from "../config/data-source";
 import { RefreshToken } from "../entity/RefreshToken";
 import { isLeapYear } from "../utils/helpers";
+import { TokenService } from "../services/TokenService";
 
-const { DOMAIN, REFRESH_TOKEN_SECRET } = Config;
+const { DOMAIN } = Config;
 
 export class AuthController {
     constructor(
         private userService: UserService,
         private logger: Logger,
+        private tokenService: TokenService,
     ) {}
     register = async (
         req: RegisterUserRequest,
@@ -55,26 +54,8 @@ export class AuthController {
                 role: user.role,
             };
 
-            let privateKey: Buffer;
-
-            try {
-                privateKey = await fs.readFile(
-                    path.join(__dirname, "../../certs/private.pem"),
-                );
-            } catch (err) {
-                const error = createHttpError(
-                    500,
-                    "Error while reading private key.",
-                );
-                next(error);
-                return;
-            }
-
-            const accessToken = sign(payload, privateKey, {
-                algorithm: "RS256",
-                expiresIn: "1h",
-                issuer: "auth-service",
-            });
+            const accessToken =
+                await this.tokenService.generateAccessToken(payload);
 
             // Expiry based on leap year check
             const MS_IN_DAY = 1000 * 60 * 60 * 24;
@@ -84,19 +65,17 @@ export class AuthController {
             const MS = isLeapYear(currentYear) ? MS_IN_LEAP_YEAR : MS_IN_YEAR;
 
             // Persisting the refresh token
-            const refreshTokenRepositorty =
+            const refreshTokenRepository =
                 AppDataSource.getRepository(RefreshToken);
 
-            const newRefreshToken = await refreshTokenRepositorty.save({
+            const newRefreshToken = await refreshTokenRepository.save({
                 user: user,
                 expiresAt: new Date(Date.now() + MS),
             });
 
-            const refreshToken = sign(payload, REFRESH_TOKEN_SECRET, {
-                algorithm: "HS256",
-                expiresIn: "1Y",
-                issuer: "auth-service",
-                jwtid: String(newRefreshToken.id),
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                id: newRefreshToken.id,
             });
 
             res.cookie("accessToken", accessToken, {
