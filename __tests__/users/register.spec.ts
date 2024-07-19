@@ -2,10 +2,10 @@ import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
-import app from "../../src/app";
-import request from "supertest";
 import { RefreshToken } from "../../src/entity/RefreshToken";
 import { isJWT } from "../utils";
+import app from "../../src/app";
+import request from "supertest";
 
 describe("POST /auth/register", () => {
     let connection: DataSource;

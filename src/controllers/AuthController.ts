@@ -5,9 +5,6 @@ import { Logger } from "winston";
 import { validationResult } from "express-validator";
 import { Config } from "../config";
 import { JwtPayload } from "jsonwebtoken";
-import { AppDataSource } from "../config/data-source";
-import { RefreshToken } from "../entity/RefreshToken";
-import { isLeapYear } from "../utils/helpers";
 import { TokenService } from "../services/TokenService";
 
 const { DOMAIN } = Config;
@@ -18,6 +15,7 @@ export class AuthController {
         private logger: Logger,
         private tokenService: TokenService,
     ) {}
+
     register = async (
         req: RegisterUserRequest,
         res: Response,
@@ -57,21 +55,8 @@ export class AuthController {
             const accessToken =
                 await this.tokenService.generateAccessToken(payload);
 
-            // Expiry based on leap year check
-            const MS_IN_DAY = 1000 * 60 * 60 * 24;
-            const MS_IN_YEAR = MS_IN_DAY * 365;
-            const MS_IN_LEAP_YEAR = MS_IN_DAY * 366;
-            const currentYear = new Date().getFullYear();
-            const MS = isLeapYear(currentYear) ? MS_IN_LEAP_YEAR : MS_IN_YEAR;
-
-            // Persisting the refresh token
-            const refreshTokenRepository =
-                AppDataSource.getRepository(RefreshToken);
-
-            const newRefreshToken = await refreshTokenRepository.save({
-                user: user,
-                expiresAt: new Date(Date.now() + MS),
-            });
+            const newRefreshToken =
+                await this.tokenService.persistRefreshToken(user);
 
             const refreshToken = this.tokenService.generateRefreshToken({
                 ...payload,
