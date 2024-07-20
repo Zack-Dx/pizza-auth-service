@@ -63,7 +63,7 @@ describe("POST /auth/register", () => {
             ).toEqual(expect.stringContaining("json"));
         });
 
-        it("should persist user in the database", async () => {
+        it("should add user in the database", async () => {
             // Arrange
             const userData = {
                 firstName: "John",

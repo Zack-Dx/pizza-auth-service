@@ -34,9 +34,12 @@ export class TokenService {
     }
 
     generateRefreshToken(payload: JwtPayload) {
+        const currentYear = new Date().getFullYear();
+        const expiryInDays = isLeapYear(currentYear) ? 366 : 365;
+
         const refreshToken = sign(payload, Config.REFRESH_TOKEN_SECRET, {
             algorithm: "HS256",
-            expiresIn: "1Y",
+            expiresIn: `${expiryInDays}d`,
             issuer: "auth-service",
             jwtid: String(payload.id),
         });
@@ -45,17 +48,13 @@ export class TokenService {
 
     async persistRefreshToken(user: User) {
         const MS_IN_DAY = 1000 * 60 * 60 * 24;
-        const MS_IN_YEAR = MS_IN_DAY * 365;
-        const MS_IN_LEAP_YEAR = MS_IN_DAY * 366;
         const currentYear = new Date().getFullYear();
-
-        const MS = isLeapYear(currentYear) ? MS_IN_LEAP_YEAR : MS_IN_YEAR;
+        const expiryInDays = isLeapYear(currentYear) ? 366 : 365;
 
         const newRefreshToken = await this.refreshTokenRepository.save({
             user: user,
-            expiresAt: new Date(Date.now() + MS),
+            expiresAt: new Date(Date.now() + MS_IN_DAY * expiryInDays),
         });
-
         return newRefreshToken;
     }
 }
