@@ -112,7 +112,7 @@ export class AuthController {
         try {
             const user = await this.userService.findByEmail(email);
             if (!user) {
-                const error = createHttpError(400, "Invalid Credentials.");
+                const error = createHttpError(404, "User not found.");
                 throw error;
             }
 
@@ -122,7 +122,7 @@ export class AuthController {
             );
 
             if (!passMatch) {
-                const error = createHttpError(400, "Invalid Credentials.");
+                const error = createHttpError(401, "Invalid Credentials.");
                 throw error;
             }
 

@@ -40,26 +40,101 @@ describe("POST /auth/login", () => {
         await destroyDatabase();
     });
 
-    describe("Given all fields", () => {
-        it("should return 200 statusCode", async () => {
-            // Arrange
-            const userData = {
-                firstName: "John",
-                lastName: "Doe",
-                email: "johndoe@gmail.com",
-                password: "something",
+    const validUserData: UserData = {
+        firstName: "John",
+        lastName: "Doe",
+        email: "johndoe@gmail.com",
+        password: "something",
+    };
+
+    describe("Given all fields correctly", () => {
+        it("should return 200 statusCode with correct credentials", async () => {
+            await createUser(validUserData);
+
+            const response = await request(app).post("/auth/login").send({
+                email: validUserData.email,
+                password: validUserData.password,
+            });
+
+            expect(response.statusCode).toBe(200);
+        });
+
+        it("should return 401 statusCode with incorrect password", async () => {
+            await createUser(validUserData);
+
+            const response = await request(app).post("/auth/login").send({
+                email: validUserData.email,
+                password: "wrongpassword",
+            });
+
+            expect(response.statusCode).toBe(401);
+        });
+
+        it("should return 404 statusCode for non-existent user", async () => {
+            const nonExistentUserData = {
+                email: "nonexistent@gmail.com",
+                password: "dummy",
             };
 
-            await createUser(userData);
-
-            // Act
             const response = await request(app)
                 .post("/auth/login")
-                .send(userData);
+                .send(nonExistentUserData);
 
-            // Assert
-            const statusCode = response.statusCode;
-            expect(statusCode).toBe(200);
+            expect(response.statusCode).toBe(404);
+        });
+
+        it("should return 400 statusCode for SQL injection attempt", async () => {
+            const response = await request(app).post("/auth/login").send({
+                email: "john@example.com'; DROP TABLE users; --",
+                password: validUserData.password,
+            });
+
+            expect(response.statusCode).toBe(400);
+        });
+    });
+
+    describe("Given missing or invalid fields", () => {
+        it("should return 400 statusCode for invalid email format", async () => {
+            const response = await request(app).post("/auth/login").send({
+                email: "invalid-email",
+                password: validUserData.password,
+            });
+
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return 400 statusCode for missing email", async () => {
+            const response = await request(app).post("/auth/login").send({
+                password: validUserData.password,
+            });
+
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return 400 statusCode for missing password", async () => {
+            const response = await request(app).post("/auth/login").send({
+                email: validUserData.email,
+            });
+
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return 400 statusCode for empty email", async () => {
+            const response = await request(app).post("/auth/login").send({
+                email: "",
+                password: validUserData.password,
+            });
+
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return 400 statusCode for empty password", async () => {
+            const response = await request(app).post("/auth/login").send({
+                email: validUserData.email,
+                password: "",
+            });
+
+            expect(response.statusCode).toBe(400);
         });
     });
 });
