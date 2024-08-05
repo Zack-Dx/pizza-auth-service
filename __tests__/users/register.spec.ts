@@ -7,20 +7,35 @@ import { isJWT } from "../utils";
 import app from "../../src/app";
 import request from "supertest";
 
+let connection: DataSource;
+
+// Helper function to initialize the database
+const initializeDatabase = async () => {
+    connection = await AppDataSource.initialize();
+};
+
+// Helper function to reset the database
+const resetDatabase = async () => {
+    await connection.dropDatabase();
+    await connection.synchronize();
+};
+
+// Helper function to destroy the database connection
+const destroyDatabase = async () => {
+    await connection.destroy();
+};
+
 describe("POST /auth/register", () => {
-    let connection: DataSource;
     beforeAll(async () => {
-        connection = await AppDataSource.initialize();
+        await initializeDatabase();
     });
 
     beforeEach(async () => {
-        // Database truncate
-        await connection.dropDatabase();
-        await connection.synchronize();
+        await resetDatabase();
     });
 
     afterAll(async () => {
-        await connection.destroy();
+        await destroyDatabase();
     });
 
     describe("Provided All Required Fields", () => {
@@ -38,7 +53,7 @@ describe("POST /auth/register", () => {
                 .post("/auth/register")
                 .send(userData);
 
-            // Asssert
+            // Assert
             const statusCode = response.statusCode;
             expect(statusCode).toBe(201);
         });
